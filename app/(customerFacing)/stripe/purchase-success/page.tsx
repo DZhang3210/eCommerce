@@ -40,7 +40,7 @@ const SuccessPage = async ({ searchParams }: {
                     </div>
                     <Button className='mt-4' size="lg" asChild>
                         {isSuccess ?
-                            <a href={`/products/download/${await createDownloadVerification(product.id)}`}></a> :
+                            <a href={`/products/download/${(await createDownloadVerification(product.id))}`}>Download</a> :
                             <Link href={`/products/${product.id}/purchase`}>Try Again</Link>}
                     </Button>
                 </div>
@@ -49,8 +49,16 @@ const SuccessPage = async ({ searchParams }: {
     )
 }
 
-function createDownloadVerification(productId: string) {
-    return prisma.downloadVerification.create({ data: { productId, expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24) } })
+async function createDownloadVerification(productId: string) {
+    // const result = prisma.downloadVerification.create({ data: { productId, expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24) } })
+    const result = await prisma.downloadVerification.create({
+        data: {
+            productId,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24)
+        }
+    })
+    const id = result.id
+    return id
 }
 
 export default SuccessPage
