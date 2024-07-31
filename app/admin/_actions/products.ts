@@ -5,6 +5,7 @@ import { DevBundlerService } from "next/dist/server/lib/dev-bundler-service"
 import { z } from 'zod'
 import fs from 'fs/promises'
 import { notFound, redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 
 const fileSchema = z.instanceof(File, { message: "Required" })
 const imageSchema = fileSchema.refine(file => file.size === 0 || file.type.startsWith("image/"))
@@ -42,7 +43,8 @@ export async function addProduct(prevState: unknown, formData: FormData) {
             filePath
         }
     })
-
+    revalidatePath("/")
+    revalidatePath("/products")
     redirect('/admin/products')
 }
 
@@ -72,8 +74,11 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
     let imagePath = product.imagePath
     if (data.image != null && data.image.size > 0) {
         await fs.unlink(`public${product.imagePath}`)
-        imagePath = `products/${crypto.randomUUID()}-${data.image.name}`
-        await fs.writeFile(imagePath, Buffer.from(await data.image.arrayBuffer()))
+        imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
+        await fs.writeFile(
+            `public${imagePath}`,
+            Buffer.from(await data.image.arrayBuffer())
+        )
     }
 
     await prisma.product.update({
@@ -89,12 +94,16 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
         }
     })
 
+    revalidatePath("/")
+    revalidatePath("/products")
     redirect('/admin/products')
 }
 
 
 export async function toggleProductAvailability(id: string, isAvailableForPurchase: boolean) {
     await prisma.product.update({ where: { id: id }, data: { isAvailableForPurchase } })
+    revalidatePath("/")
+    revalidatePath("/products")
 }
 
 export async function deleteProduct(id: string) {
@@ -102,4 +111,6 @@ export async function deleteProduct(id: string) {
     if (product == null) return notFound()
     await fs.unlink(product.filePath)
     await fs.unlink(`public${product.imagePath}`)
+    revalidatePath("/")
+    revalidatePath("/products")
 }
