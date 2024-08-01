@@ -1,3 +1,4 @@
+import PurchaseReceiptEmail from "@/email/PurchaseReceipt";
 import prisma from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -46,13 +47,17 @@ export async function POST(req: NextRequest) {
             to: email,
             subject: "Order Confirmation",
             react: (
-                <h1>Hi</h1>
+                <PurchaseReceiptEmail
+                    order={order}
+                    product={product}
+                    downloadVerificationId={downloadVerification.id}
+                >
+                </PurchaseReceiptEmail>
             ),
         })
 
 
-        return new NextResponse()
-    } else {
-        return new NextResponse()
+
     }
+    return new NextResponse()
 }
