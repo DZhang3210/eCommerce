@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "email": "shx cp .env ./node_modules/react-email/.env && npx email dev --dir email --port 3001"
   },
   "dependencies": {
